@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".NewTripFragment">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New trip"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- Start -->
+    <EditText
+        android:id="@+id/startInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:hint="Start location"
+        android:inputType="text"
+        android:imeOptions="actionNext" />
+
+    <TextView
+        android:id="@+id/startAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+    <!-- Destination -->
+    <EditText
+        android:id="@+id/endInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Destination"
+        android:inputType="text"
+        android:imeOptions="actionDone" />
+
+    <TextView
+        android:id="@+id/endAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="" />
+
+    <!-- Suggestions for whichever box the user is typing in -->
+    <ListView
+        android:id="@+id/suggestionsList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="Powered by Google"
+        android:textSize="12sp" />
+
+    <!-- Departure time -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Departure"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/pickTimeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="11/19/2024 - 12:00PM" />
+
+    <Button
+        android:id="@+id/findRouteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:enabled="false"
+        android:text="Find route" />
+</LinearLayout>

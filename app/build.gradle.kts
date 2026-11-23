@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
     implementation(libs.material)
+    implementation(libs.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
@@ -67,4 +68,5 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation("com.google.android.libraries.places:places:6.1.0")
+    implementation("com.google.android.libraries.places:places:5.3.0")
 }

@@ -15,6 +15,10 @@ public class Trip {
     private Address end;
     private Address mid;               // midway point of the route
 
+    private Date startTime;
+
+    public Date getStartTime() { return startTime; }
+    public void setStartTime(Date startTime) { this.startTime = startTime; }
     private String encodedPolyline;    // from Routes API, used to redraw the route
     private int distanceMeters;
     private long durationSeconds;

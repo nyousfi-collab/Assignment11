@@ -1,64 +1,176 @@
 package com.example.assignment11;
 
+import android.content.Context;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link TripsFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Shows the signed-in user's saved trips from Firestore (users/{uid}/trips).
+ * Tapping a trip tells the activity to open it on the map.
  */
 public class TripsFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    public interface TripsFragListener {
+        void openTrip(Trip trip);
+        void goToNewTrip();
+    }
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private TripsFragListener listener;
+    private final ArrayList<Trip> trips = new ArrayList<>();
+    private TripAdapter adapter;
+    private ListenerRegistration registration;
 
     public TripsFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment TripsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static TripsFragment newInstance(String param1, String param2) {
-        TripsFragment fragment = new TripsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof TripsFragListener) {
+            listener = (TripsFragListener) context;
+        } else {
+            throw new RuntimeException(context + " must implement TripsFragListener");
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_trips, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        RecyclerView recyclerView = view.findViewById(R.id.tripsRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.addItemDecoration(
+                new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL));
+
+        adapter = new TripAdapter(trips, trip -> {
+            if (listener != null) listener.openTrip(trip);
+        });
+        recyclerView.setAdapter(adapter);
+
+        view.findViewById(R.id.addTripButton).setOnClickListener(v -> {
+            if (listener != null) listener.goToNewTrip();
+        });
+
+        loadTrips();
+    }
+
+    private void loadTrips() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        // Live listener: the list updates by itself when a new trip is saved.
+        registration = FirebaseFirestore.getInstance()
+                .collection("users").document(user.getUid())
+                .collection("trips")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null || snapshot == null) {
+                        Log.e("TripsFragment", "Failed to load trips", e);
+                        return;
+                    }
+                    trips.clear();
+                    trips.addAll(snapshot.toObjects(Trip.class));
+                    adapter.notifyDataSetChanged();
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (registration != null) registration.remove();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        listener = null;
+    }
+
+    // ---------------- Adapter ----------------
+
+    static class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
+
+        interface OnTripClick {
+            void onClick(Trip trip);
+        }
+
+        private final List<Trip> trips;
+        private final OnTripClick onTripClick;
+        private final SimpleDateFormat format =
+                new SimpleDateFormat("MM/dd/yyyy - h:mma", Locale.US);
+
+        TripAdapter(List<Trip> trips, OnTripClick onTripClick) {
+            this.trips = trips;
+            this.onTripClick = onTripClick;
+        }
+
+        @NonNull
+        @Override
+        public TripViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.trip_list_item, parent, false);
+            return new TripViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull TripViewHolder holder, int position) {
+            Trip trip = trips.get(position);
+
+            holder.start.setText(trip.getStart() != null ? trip.getStart().getName() : "");
+            holder.end.setText(trip.getEnd() != null ? trip.getEnd().getName() : "");
+
+            // Show departure time; fall back to when it was saved
+            Date when = trip.getStartTime() != null ? trip.getStartTime() : trip.getCreatedAt();
+            holder.date.setText(when != null ? format.format(when) : "");
+
+            holder.itemView.setOnClickListener(v -> onTripClick.onClick(trip));
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return trips.size();
+        }
+
+        static class TripViewHolder extends RecyclerView.ViewHolder {
+            final TextView start, end, date;
+
+            TripViewHolder(@NonNull View itemView) {
+                super(itemView);
+                start = itemView.findViewById(R.id.tripStart);
+                end = itemView.findViewById(R.id.tripEnd);
+                date = itemView.findViewById(R.id.tripStartDateTime);
+            }
+        }
     }
 }
