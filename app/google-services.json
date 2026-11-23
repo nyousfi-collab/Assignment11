@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "222327729306",
+    "project_id": "creanassignment11",
+    "storage_bucket": "creanassignment11.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:222327729306:android:0302b47d955882f77dc323",
+        "android_client_info": {
+          "package_name": "com.example.assignment11"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3gGxFo50mH-ORv_5kwB3_dfy4BdfF8FA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
