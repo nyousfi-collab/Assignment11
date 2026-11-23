@@ -36,6 +36,8 @@ public class TripsFragment extends Fragment {
     public interface TripsFragListener {
         void openTrip(Trip trip);
         void goToNewTrip();
+
+        void logout();
     }
 
     private TripsFragListener listener;
@@ -79,6 +81,10 @@ public class TripsFragment extends Fragment {
 
         view.findViewById(R.id.addTripButton).setOnClickListener(v -> {
             if (listener != null) listener.goToNewTrip();
+        });
+
+        view.findViewById(R.id.logoutButton).setOnClickListener(v -> {
+            if (listener != null) listener.logout();
         });
 
         loadTrips();

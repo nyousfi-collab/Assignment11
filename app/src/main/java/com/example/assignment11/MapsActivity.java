@@ -9,6 +9,9 @@ import android.view.View;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -69,6 +72,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         String apiKey = BuildConfig.MAPS_API_KEY;
         if (TextUtils.isEmpty(apiKey) || apiKey.equals("DEFAULT_API_KEY")) {
@@ -167,6 +175,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .replace(R.id.fragmentContainer, new NewTripFragment())
                 .addToBackStack(null)
                 .commit();
+    }
+
+    @Override
+    public void logout() {
+        FirebaseAuth.getInstance().signOut();
+        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        showFragment(new LoginFragment());
     }
 
     // ---------------- Saved trip ----------------
